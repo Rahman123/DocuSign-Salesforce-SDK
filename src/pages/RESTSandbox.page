@@ -1,0 +1,53 @@
+<apex:page controller="RESTSandboxController" sidebar="false">
+ <style type="text/css">
+	.container { 
+		overflow: hidden;
+	}
+	.left_nav{
+		width: 250px;
+	}
+	.workspace{
+		width: 800px;
+	}
+</style>
+
+<h1>DocuSign REST Sandbox Controller</h1><br/>
+
+(Patterned after <a href="http://iodocs.docusign.com/">http://iodocs.docusign.com/</a>)
+
+<table>
+	<tr>
+		<td><b>DocuSignClient.BaseEndpointURL</b></td><td>{!Client.BaseEndpointURL}</td>
+	</tr>
+</table>
+
+<apex:form id="theForm">
+<div class="container">
+	<div style="float: left;" class="left_nav">
+		<apex:commandButton action="{!getLoginInformation}" value="GET Login Information" /><br/>
+		<apex:commandButton action="{!getTemplates}" value="GET Templates" /><br/>
+		<apex:commandButton value="POST Request Signature from Template" /><br/>
+		<apex:commandButton value="POST Request Signature from Document" /><br/>
+		<apex:commandButton value="GET Envelope" /><br/>		
+		<apex:commandButton value="PUT Change Request Status" /><br/>
+		<apex:commandButton value="GET Status from Date" /><br/>
+		<apex:commandButton value="GET Status from Date and Changed Type" /><br/>
+		<apex:commandButton value="GET Envelope Recipients" /><br/>
+		<apex:commandButton value="POST Add Envelope Recipients" /><br/>
+		<apex:commandButton value="PUT Edit Envelope Recipients" /><br/>
+		<apex:commandButton value="DELETE Envelope Recipient" /><br/>
+		<apex:commandButton value="GET Envelope Recipients" /><br/>
+		<apex:commandButton value="GET Envelope Assets" /><br/>
+		<apex:commandButton value="GET Envelope Certificate" /><br/>
+		<apex:commandButton value="GET Envelope Document" /><br/>
+		<apex:commandButton value="PUT Envelope Document" /><br/>
+		<apex:commandButton value="DELETE Envelope Document" /><br/>		
+	</div>
+	<div style="float: left;" class="workspace">
+		<b>Request: </b>{!endpointURL}<hr/>
+		<b>Response: </b><br/>
+		<apex:outputText value=" {!apiResponse}" escape="false"/>
+	</div>
+</div>
+</apex:form>
+</apex:page>
