@@ -1,7 +1,7 @@
-<h1>Docusign Software Development Kit for Saleforce</h1><br/>
+<h1>Docusign Software Development Kit for Saleforce</h1><
 
 Provides an Apex class library for interacting with the DocuSign REST API.
-<br/><br/>
+<br/>
 
 <b>QUICK START:</b><br/>
 <ol>
