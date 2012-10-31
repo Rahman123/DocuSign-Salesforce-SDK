@@ -1,21 +1,74 @@
+/*
+ * DSClient.cls
+ * Main class for interfacing with DocuSign web services.
+ * Provides an abstraction layer to the DocuSign REST API.
+ */
 public with sharing class DSClient {
-	private final DocuSignConfiguration config;
-	//TODO: Require as input from Developer. Only used by managed package calls
-	//move to configuration custom object
-	private string integratorKey 	= 'DOCU-339fa93c-fcf0-4390-8141-2e0f071ffa2a';	
-	public string testResponseData {get; set;}
-	// public final DSLoginInformation loginInformation;
+	public integer Timeout     	{ get; set;}
+	public string EndpointURL  	{ get; set;}
+	public string RequestBody  	{ get; set;}
+	public string ResponseBody 	{ get; set;}
+	public List<string> Errors 	= new List<string>();
+	public string TestResponseData {get; set;}
     
-	public DSClient(){
-		config 	= new DocuSignConfiguration();		
-		config.OrganizationId = UserInfo.getOrganizationId();
-		config.initConfiguration();
-		
-		testResponseData = 'Not set;';
+	public DSClient(DSCredentials credentials){		
+		m_credentials = credentials;
+		validateCredentials();
+		Timeout = 59000;
+		TestResponseData = 'Not set';
 	}
 	
-	private string BaseURL{
-		get{ return config.DocuSignBaseURL; }
+	private void validateCredentials(){
+		if(this.m_credentials == null){
+			this.Errors.add('Credential object passed to DSClient constructor cannot be null.');
+		}
+		if(	m_credentials.BaseURL == null ||
+			m_credentials.BaseURL == '' ||
+			m_credentials.BaseURL.startsWith('https') == false){
+				this.Errors.add('DSCredential.BaseURL is invalid.');
+		}
+		if( m_credentials.BaseURL.endsWith('/') == false){
+			m_credentials.BaseURL += '/';
+		}
+		if(	m_credentials.Username == null ||
+			m_credentials.Username == ''){
+				this.Errors.add('DSCredential.Username is invalid.');
+		}
+		if(	m_credentials.Password == null ||
+			m_credentials.Password == ''){
+				this.Errors.add('DSCredential.Password is invalid.');
+		}
+		if(	m_credentials.IntegratorKey == null ||
+			m_credentials.IntegratorKey == ''){
+				this.Errors.add('DSCredential.IntegratorKey is invalid.');
+		}
+		if(HasError){
+			string message;
+			for(string error : Errors){
+				message += error + '------';
+			}
+			throw new DSException(message);
+		}
+	}
+	
+	public boolean HasError{
+		get{ return this.Errors.size() > 0; }
+	}
+	
+	private final DSCredentials m_credentials;
+	public DSCredentials Credentials{
+		get{ return this.m_credentials; }
+	}
+	
+	private string m_baseURL = null;
+	public string BaseURL{
+		get{  
+			if(this.m_baseURL == null){
+				this.m_baseURL = Credentials.BaseURL;
+			}
+			return this.m_baseURL;
+		}
+		set{ m_baseURL = value; }
 	}
 	
 	private integer m_apiVersion = 2;
@@ -27,15 +80,37 @@ public with sharing class DSClient {
 	public string BaseEndpointURL{
 		get{ return this.BaseURL + 'restapi/' + 'v' + this.APIVersion + '/'; }
 	}
-		
-	public string AccountId{
-		get{ return config.DocuSignAccountId;}
+	
+	private DSLoginInformation m_loginInfo = null;
+	public DSLoginInformation LoginInfo{
+		get{
+			if(this.m_loginInfo == null){
+				HttpResponse response = this.Get(BaseEndpointURL + '/login_information');
+				if(response.getStatusCode() == 401){
+					throw new DSException('USER_AUTHENTICATION_FAILED: One or both of Username and Password are invalid.');
+				}
+				else if(response.getStatusCode() != 200){
+					throw new DSException('USER_AUTHENTICATION_FAILED:' + response.getBody());
+				}
+				
+				this.m_loginInfo = DSLoginInformation.deserialize(response);
+				if(this.m_loginInfo.hasError){
+					throw new DSException('Login failed: ' +  m_loginInfo.errorMessage);
+				}
+			}
+			return m_loginInfo;
+		}
 	}
 	
-	private integer m_timeout = 59000; //59 seconds
-	public integer Timeout{
-		get{ return m_timeout;}
-		set{ m_timeout = value; }
+	private string m_accountId = null;
+	public string AccountId{
+		get{
+			if(m_accountId == null){
+				this.m_accountId = this.LoginInfo.accountId;
+			}
+			return this.m_accountId;
+		}
+		set { m_accountId = value; }
 	}
 	
 	public List<DSTemplate> getTemplates(){		
@@ -59,83 +134,58 @@ public with sharing class DSClient {
                                               reqBody == null ? '' : reqBody);
 	}
 
-    private HttpResponse DocuSignRestAPIReturnResponse(string endpointURL, string HTTPOperation, string reqBody) {
-		Http h = new Http();
-		HttpRequest req = new HttpRequest();
+    private HttpResponse DocuSignRestAPIReturnResponse(string restURL, string HTTPOperation, string reqBody) {
+    	
+		Http http = new Http();
+		HttpRequest request = new HttpRequest();
 		if (reqBody != null)
 		{
-			req.setBody(reqBody);
-		}
+			request.setBody(reqBody);
+			this.RequestBody = reqBody;
+		}	
+		this.EndpointURL = restURL;
 		
-		req.setEndpoint(endpointURL);
-		req.setMethod(HTTPOperation);
-		req.setHeader('Content-Type', 'application/json');
-		req.setHeader('Accept', 'application/json');
-		req.setHeader('X-DocuSign-Authentication', GetDocuSignCredentialsXml() );
-		req.setTimeout(Timeout);
-		HttpResponse res = null;
+		request.setEndpoint(restURL);
+		request.setMethod(HTTPOperation);
+		request.setHeader('Content-Type', 'application/json');
+		request.setHeader('Accept', 'application/json');
+		request.setHeader('X-DocuSign-Authentication', this.Credentials.toXML() );
+		request.setTimeout(Timeout);
+		
+		HttpResponse response = null;
 		try{
 			if(Test.isRunningTest()){
-				res = new HttpResponse();
+				response = new HttpResponse();
 				if (testResponseData != null && testResponseData.length() > 0)
 				{
-					res.setBody(testResponseData);
+					response.setBody(testResponseData);
 				}
 			} else {
-				res = h.send(req);
+				response = http.send(request);
 			}
-			system.debug('request = ' + req.getEndPoint());
-			system.debug('request.getBody() = ' + req.getBody());
-			system.debug('response.getBody() = ' + res.getBody());
+			system.debug('request = ' + request.getEndPoint());
+			system.debug('request.getBody() = ' + request.getBody());
+			system.debug('response.getBody() = ' + response.getBody());
+						
+			this.ResponseBody = response.getBody();
 		}
 		catch(Exception excp)
 		{
-			res = new HttpResponse();
-			res.setBody('ERROR: ' + excp.getMessage());
+			response = new HttpResponse();
+			response.setBody('ERROR: ' + excp.getMessage());
 			system.debug('PostToDocuSignAPIReturnResponse error: ' + excp);
 		}
-		return res;
-	}
-	
-	private string GetDocuSignCredentialsXml()
-    {
-        XmlStreamWriter w = new XmlStreamWriter();
-        w.writeStartElement(null,'DocuSignCredentials',null);
-            w.writeStartElement(null,'Username',null);
-                w.writeCharacters(config.DocuSignUserName);
-            w.writeEndElement();    
-            w.writeStartElement(null,'Password',null);
-                w.writeCharacters(config.DocuSignPassword);
-            w.writeEndElement();
-            w.writeStartElement(null,'IntegratorKey',null);
-                w.writeCharacters(this.integratorKey);
-            w.writeEndElement();
-            if (config.UseSendOnBehalfOf)
-            {
-				string sendOnBehalfOfId = config.SendOnBehalfOfID;
-                if (config.SendOnBehalfOfID == null || config.SendOnBehalfOfID.length() == 0)
-                {
-					sendOnBehalfOfId = 'NOT_CONFIGURED';
-                }
-				w.writeStartElement(null,'SendOnBehalfOf',null);
-                    w.writeCharacters(sendOnBehalfOfId);
-				w.writeEndElement();
-			}
-		w.writeEndElement();
-		string xml = w.getXmlString();
-		w.close();
-		return xml;
-	}
-	
-	public static testMethod void testXMLCredentials(){
-		DSClient client = new DSClient();
-		string xml = client.GetDocuSignCredentialsXml();
-		System.assertNotEquals(null, xml);
+		return response;
 	}
 	
 	public static testMethod void testRESTGet(){
-		DSClient client = new DSClient();
+		DSCredentials credentials = new DSCredentials();
+		credentials.BaseURL			= 'https://demo.docusign.net/';
+		credentials.Username		= 'username';
+		credentials.Password		= 'password';
+		credentials.IntegratorKey	= 'key';
 		
+		DSClient client = new DSClient(credentials);
 		client.testResponseData = '{"agents":[],"carbonCopies":[],"certifiedDeliveries":[],"editors":[],"inPersonSigners":[{"note":"","recipientId":"1","requireIdLookup":"false","roleName":"Signer 1","routingOrder":"1","status":"sent","hostEmail":"john.doe@docusign.com","hostName":"John Doe","signerName":"Fred Flintstone"}],"intermediaries":[],"recipientCount":"2","signers":[{"note":"","recipientId":"2","requireIdLookup":"false","roleName":"Signer 2","routingOrder":"1","status":"sent","email":"jane.doe@gmail.com","name":"Jane Doe"}]}';
 		HttpResponse httpResponse = client.Get( client.BaseEndpointURL + 'accounts/someAccountID/envelopes/someEnvelopeID/recipients');
 		
@@ -147,7 +197,12 @@ public with sharing class DSClient {
 	}
 	
 	public static testMethod void testRESTPost(){
-		DSClient client = new DSClient();
+		DSCredentials credentials = new DSCredentials();
+		credentials.Username		= 'username';
+		credentials.Password		= 'password';
+		credentials.IntegratorKey	= 'key';
+		
+		DSClient client = new DSClient(credentials);
 		
 		string reqBody = '{"authenticationMethod":"email","returnUrl":"https://dsfs.na7.visual.force.com/apex/dsfs__docusign_signnowdone?DSEID=dseid&envelopeId=envId&event=Sent&signNow=1&SourceID=sourceid","recipientId":"1","email":"jane.doe@gmail.com","userName":Jane Doe"}';
         client.testResponseData = '{"url":"https://test1.docusign.net/Member/StartInSession.aspx?t=fc1c34c2-23ac-44e0-b41c-136f3468b75d"}';

@@ -7,23 +7,41 @@ public class DSLoginInformation {
 	public string siteDescription;
 	public string userId;
 	public string userName;
+	public boolean hasError = true;
+	public string errorMessage = '';
 	
 	public static DSLoginInformation deserialize(HttpResponse httpResponse){
+		DSLoginInformation loginInfoResult = new DSLoginInformation();
+		
 		try{
 			LoginInformationResult result = (LoginInformationResult) JSON.deserialize(httpResponse.getBody(), 
-										LoginInformationResult.class);
+									LoginInformationResult.class);
+			if( result == null || 
+				result.loginAccounts == null ||
+				result.loginAccounts.size() == 0){
+					loginInfoResult.hasError = true;
+					loginInfoResult.errorMessage = 'Failed to deserialize JSON response from call to login_information';
+					return loginInfoResult;
+			}
+			
 			for(DSLoginInformation loginInfo : result.loginAccounts){
 				if(loginInfo.isDefault.toLowerCase() == 'true'){
-					return loginInfo;
+					loginInfoResult = loginInfo;
+					loginInfoResult.hasError = false;
+					break;
 				}
+			}
+			
+			if(loginInfoResult.hasError){
+				loginInfoResult.errorMessage = 'At least 1 login account must be flagged as isDefault';
 			}
 		}
 		catch(System.JSONException ex){
-			System.debug('JSON Parsing error deserializing Login Information: ' + ex.getMessage());
-			return null;
+			loginInfoResult.hasError = true;
+			loginInfoResult.errorMessage = 'JSON Parsing error deserializing Login Information: ' + ex.getMessage();
+			return loginInfoResult;
 		}
-		
-		return null;
+		return loginInfoResult;
 	}
 	
 	private class LoginInformationResult{
@@ -41,6 +59,8 @@ public class DSLoginInformation {
 		info.siteDescription = 'foo';
 		info.userId 	= 'foo';
 		info.userName 	= 'foo';
+		info.errorMessage = 'foo';
+		info.hasError  	= true;
 		System.assertEquals('foo', info.accountId);
 		System.assertEquals('foo', info.baseUrl);
 		System.assertEquals('foo', info.email);
@@ -49,6 +69,8 @@ public class DSLoginInformation {
 		System.assertEquals('foo', info.siteDescription);
 		System.assertEquals('foo', info.userId);
 		System.assertEquals('foo', info.userName);
+		System.assertEquals('foo', info.errorMessage);
+		System.assert(info.hasError);
 		
 		LoginInformationResult response = new LoginInformationResult();
 		response.apiPassword = 'foo';
@@ -61,7 +83,7 @@ public class DSLoginInformation {
 	private static testMethod void deserializationTests(){
 		HttpResponse testResponse = new HttpResponse();
 		DSLoginInformation nullLoginInfo = (DSLoginInformation)DSLoginInformation.deserialize(testResponse);
-		System.assertEquals(null, nullLoginInfo);
+		System.assertEquals(true, nullLoginInfo.hasError);
 		
 		testResponse.setBody(TEST_DATA);
 		LoginInformationResult loginResponse = (LoginInformationResult) JSON.deserialize(testResponse.getBody(), 
@@ -77,6 +99,7 @@ public class DSLoginInformation {
 		System.assertEquals('12345678-82a2-4d6c-891c-f2f661234567', loginResponse.loginAccounts[1].userId);
 		
 		DSLoginInformation loginInfo = (DSLoginInformation)DSLoginInformation.deserialize(testResponse);
+		System.assertEquals(false, loginInfo.hasError);
 		System.assertEquals('123456', loginInfo.accountId);
 		System.assertEquals('https://demo.docusign.net/restapi/v2/accounts/123456', loginInfo.baseUrl);
 		System.assertEquals('user@domain.com', loginInfo.email);
@@ -86,6 +109,18 @@ public class DSLoginInformation {
 		System.assertEquals('12345678-82a2-4d6c-891c-f2f661234567', loginInfo.userId);
 		System.assertEquals('First Last', loginInfo.userName);
 		//LoginInformationResult r = (LoginInformationResult)DSLoginInformation.deserialize(testResponse);
+		
+		testResponse.setBody('{"foo":"bad');
+		DSLoginInformation badLoginInfo = (DSLoginInformation)DSLoginInformation.deserialize(testResponse);
+		System.assertEquals(true, badLoginInfo.hasError);
+		
+		testResponse.setBody('{}');
+		badLoginInfo = (DSLoginInformation)DSLoginInformation.deserialize(testResponse);
+		System.assertEquals(true, badLoginInfo.hasError);
+		
+		testResponse.setBody(TEST_DATA_NO_DEFAULT);
+		badLoginInfo = (DSLoginInformation)DSLoginInformation.deserialize(testResponse);
+		System.assertEquals(true, badLoginInfo.hasError);	
 	}
 	
 	private static string TEST_DATA = '{' + 
@@ -109,6 +144,22 @@ public class DSLoginInformation {
 	      '"name": "DocuSign",' +
 	      '"siteDescription": "",' +
 	      '"userId": "12345678-82a2-4d6c-891c-f2f661234567",' +
+	      '"userName": "First Last"' +
+	    '}' +
+	  ']' +
+	'}';
+	
+	private static string TEST_DATA_NO_DEFAULT = '{' + 
+	  '"apiPassword": "super-secret-password",' +
+	  '"loginAccounts": [' +
+	    '{' +
+	      '"accountId": "654321",' +
+	      '"baseUrl": "https://demo.docusign.net/restapi/v2/accounts/654321",' +
+	      '"email": "user@domain.com",' +
+	      '"isDefault": "false",' +
+	      '"name": "DocuSign",' +
+	      '"siteDescription": "",' +
+	      '"userId": "12345678-82a2-4d6c-891c-f2f667654321",' +
 	      '"userName": "First Last"' +
 	    '}' +
 	  ']' +

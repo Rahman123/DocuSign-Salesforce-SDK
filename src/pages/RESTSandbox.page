@@ -17,7 +17,7 @@
 
 <table>
 	<tr>
-		<td><b>DocuSignClient.BaseEndpointURL</b></td><td>{!Client.BaseEndpointURL}</td>
+		<td><b>DocuSignClient.BaseEndpointURL</b></td><td>{!Client.BaseURL}</td>
 	</tr>
 </table>
 
@@ -44,8 +44,9 @@
 		<apex:commandButton value="DELETE Envelope Document" /><br/>		
 	</div>
 	<div style="float: left;" class="workspace">
-		<b>Request: </b>{!endpointURL}<hr/>
-		<b>Response: </b><br/>
+		<b>EndpointURL:</b> {!Client.EndpointURL}<hr/>
+		<b>RequestBody:</b> {!Client.RequestBody}<hr/>
+		<b>ResponseBody:</b>{!Client.ResponseBody}<hr/>
 		<apex:outputText value=" {!apiResponse}" escape="false"/>
 	</div>
 </div>
