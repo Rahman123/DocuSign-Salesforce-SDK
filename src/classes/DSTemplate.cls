@@ -1,4 +1,7 @@
-public with sharing class DSTemplate {
+/*
+ * DSTemplate.cls
+ */
+global with sharing class DSTemplate {
 	public string name;
 	public string templateId;
 	public string description;

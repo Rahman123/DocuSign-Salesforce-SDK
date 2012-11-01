@@ -1,1 +1,4 @@
-public class DSException extends Exception {}
+/*
+ * DSException.cls
+ */
+global class DSException extends Exception {}

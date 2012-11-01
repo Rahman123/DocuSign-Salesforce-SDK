@@ -1,5 +1,7 @@
 public with sharing class RESTSandboxController {		
 	public string apiResponse {get; set;}
+	public string templateId {get; set;}
+	public string envelopeId {get; set;}
 	
 	public RESTSandboxController(){
 		
@@ -10,9 +12,6 @@ public with sharing class RESTSandboxController {
 		get{
 			if(m_credentials == null){
 				m_credentials = new DSCredentials();
-				m_credentials.Username = 'username';
-				m_credentials.Password = 'password';
-				m_credentials.IntegratorKey = 'key';
 			}
 			return m_credentials;
 		}
@@ -42,9 +41,52 @@ public with sharing class RESTSandboxController {
 			this.apiResponse += template.name + '<br/>';
 		}
 		
-		//HOWTO: Parse a particular field out of the JSON response
-		//string templateId = this.parseField(apiResponse, 'templateId');
+		return null;
+	}
+	
+	public PageReference getEnvelopes(){
+		String lastWeek = EncodingUtil.urlEncode(DateTime.now().addDays(-7).format('MM/dd/yyyy hh:mm:ss a') , 'UTF-8');
 		
+		HttpResponse httpResponse = this.Client.Get(Client.BaseEndpointURL + 
+									'accounts/' + Client.AccountId + '/envelopes?from_date=' + lastWeek);
+		return null;
+	}
+	
+	public PageReference requestSignatureFromTemplate(){
+		this.apiResponse = '';		
+		User u = [SELECT Id, Email, Name FROM User WHERE Id=:UserInfo.getUserId() LIMIT 1];
+		DSSignatureRequest request = new DSSignatureRequest();
+		request.emailSubject 	= 'Sandbox requestSignatureFromTemplate()';
+		request.emailBlurb		= 'email body';
+		request.templateId		= this.templateId;
+		request.templateRoles.add( new DSTemplateRole( u.Email, u.Name, 'Signer'));
+		
+		DSSignatureResult result = this.Client.requestSignature(request);
+		
+		this.apiResponse = 'Signature request sent to ' + u.Email + '<br/>' + 
+			'EnvelopeID: ' + result.envelopeId + '<br/>' +
+			'Status: ' + result.status + '<br/>' + 
+			'URI: '	+ result.uri + '<br/>' +
+			'Timestamp: ' + result.statusDateTime;
+			
+		this.envelopeId = result.envelopeId;
+			
+		return null;
+	}
+	
+	public PageReference serializeRequest(){
+		DSSignatureRequest request = new DSSignatureRequest();
+		request.emailSubject = 'please sign';
+		request.emailBlurb = 'click here';
+		request.templateId = 'template id';
+		
+		DSCustomField f = new DSCustomField();
+		f.name = 'field name';
+		f.value = 'field value';
+		request.customFields = new List<DSCustomField>();
+		request.customFields.add(f);
+		
+		apiResponse = request.serialize();
 		return null;
 	}
 	

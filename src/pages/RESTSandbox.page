@@ -11,24 +11,31 @@
 	}
 </style>
 
-<h1>DocuSign REST Sandbox Controller</h1><br/>
-
-(Patterned after <a href="http://iodocs.docusign.com/">http://iodocs.docusign.com/</a>)
-
+<h1>Example DocuSign REST SDK Sandbox</h1><br/>
+See <a href="http://iodocs.docusign.com/">http://iodocs.docusign.com/</a> for full REST API documentation.
+<apex:form id="theForm">
 <table>
 	<tr>
 		<td><b>DocuSignClient.BaseEndpointURL</b></td><td>{!Client.BaseURL}</td>
 	</tr>
+	<tr>
+		<td><b>Template ID:</b></td>
+		<td><apex:inputText value="{!templateId}" size="100"/> (Example: c214c9e7-c737-4b50-aa01-fe4d7f0e2434)</td>
+	</tr>
+	<tr>
+		<td><b>Envelope ID:</b></td>
+		<td><apex:inputText value="{!envelopeId}" size="100"/></td>
+	</tr>
 </table>
 
-<apex:form id="theForm">
 <div class="container">
 	<div style="float: left;" class="left_nav">
 		<apex:commandButton action="{!getLoginInformation}" value="GET Login Information" /><br/>
 		<apex:commandButton action="{!getTemplates}" value="GET Templates" /><br/>
-		<apex:commandButton value="POST Request Signature from Template" /><br/>
+		<apex:commandButton value="POST Request Signature from Template" action="{!requestSignatureFromTemplate}" /><br/>
 		<apex:commandButton value="POST Request Signature from Document" /><br/>
-		<apex:commandButton value="GET Envelope" /><br/>		
+		<apex:commandButton value="GET All Envelopes" action="{!getEnvelopes}" /><br/>
+		<apex:commandButton value="GET Envelope" /><br/>
 		<apex:commandButton value="PUT Change Request Status" /><br/>
 		<apex:commandButton value="GET Status from Date" /><br/>
 		<apex:commandButton value="GET Status from Date and Changed Type" /><br/>
@@ -42,6 +49,7 @@
 		<apex:commandButton value="GET Envelope Document" /><br/>
 		<apex:commandButton value="PUT Envelope Document" /><br/>
 		<apex:commandButton value="DELETE Envelope Document" /><br/>		
+		<apex:commandButton value="Serialize SignatureRequest" action="{!serializeRequest}" /><br/>
 	</div>
 	<div style="float: left;" class="workspace">
 		<b>EndpointURL:</b> {!Client.EndpointURL}<hr/>

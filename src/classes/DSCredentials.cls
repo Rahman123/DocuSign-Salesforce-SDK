@@ -7,14 +7,14 @@
  * TO CREATE DEVELOPER ACCOUNT CREDENTIALS
  * Visit http://www.docusign.com/developer-center
  */
-public with sharing class DSCredentials {
+global with sharing class DSCredentials {
 	// OPTION 1: Hard code credentials here.
 	// OPTION 2: Create an instance of DSCredentials and set these properties in the calling class. 
 	public string BaseURL		= 'https://demo.docusign.net/';
 	public string Username  	= '';
 	public string Password  	= '';
 	public string IntegratorKey = '';
-	
+		
 	public DSCredentials(){		
 		// OPTION 3: Dynamically load and set credentials here.
 	}

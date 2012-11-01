@@ -1,4 +1,8 @@
-public class DSLoginInformation {
+/*
+ * DSLoginInformation.cls
+ *
+ */
+global class DSLoginInformation {
 	public string accountId;
 	public string baseUrl;
 	public string email;
