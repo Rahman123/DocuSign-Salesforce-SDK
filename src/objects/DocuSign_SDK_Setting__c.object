@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <customSettingsType>List</customSettingsType>
+    <customSettingsVisibility>Public</customSettingsVisibility>
+    <description>Settings for using the DocuSign REST API.</description>
+    <enableFeeds>false</enableFeeds>
+    <fields>
+        <fullName>DocuSign_API_URL__c</fullName>
+        <externalId>false</externalId>
+        <inlineHelpText>Use https://demo.docusign.net/ for developer accounts.</inlineHelpText>
+        <label>DocuSign API URL</label>
+        <required>false</required>
+        <type>Url</type>
+    </fields>
+    <fields>
+        <fullName>DocuSign_Account_Email__c</fullName>
+        <description>DocuSign Account email address created at http://www.docusign.com/developer-center</description>
+        <externalId>false</externalId>
+        <label>DocuSign Account Email</label>
+        <required>false</required>
+        <type>Email</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>DocuSign_Account_Password__c</fullName>
+        <description>Password for account created at http://www.docusign.com/developer-center</description>
+        <externalId>false</externalId>
+        <label>DocuSign Account Password</label>
+        <length>255</length>
+        <required>false</required>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>DocuSign_Integrator_Key__c</fullName>
+        <description>Integrator key created at http://www.docusign.com/developer-center</description>
+        <externalId>false</externalId>
+        <label>DocuSign Integrator Key</label>
+        <length>255</length>
+        <required>false</required>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+    <label>DocuSign SDK Settings</label>
+</CustomObject>

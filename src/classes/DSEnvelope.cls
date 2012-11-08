@@ -17,4 +17,11 @@ global with sharing class DSEnvelope {
 	public static DSEnvelope deserialize(string jsonBody){
 		return (DSEnvelope)JSON.deserialize(jsonBody, DSEnvelope.class);
 	}
+	
+	private static testMethod void tests(){
+		DSEnvelope envelope = new DSEnvelope();
+		envelope.status = 'sent';
+		System.assertEquals('sent', envelope.status);
+		System.assertNotEquals(null, DSEnvelope.deserialize('{"status": "sent"}'));
+	}
 }

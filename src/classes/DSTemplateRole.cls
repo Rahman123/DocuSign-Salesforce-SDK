@@ -2,10 +2,11 @@
  * DSTemplateRole.cls
  *
  */
-global with sharing class DSTemplateRole {
+global with sharing class DSTemplateRole implements DSSerializeable{
 	public string email;
 	public string name;
 	public string roleName;
+	public List<DSTab> tabs = new List<DSTab>();
 	
 	public DSTemplateRole(){}
 	
@@ -24,7 +25,7 @@ global with sharing class DSTemplateRole {
 		return gen;
 	}
 	
-	public static testMethod void serializeTests(){
+	private static testMethod void serializeTests(){
 		DSTemplateRole role = new DSTemplateRole();
 		role.name 		= 'name';
 		role.email 		= 'name@domain.com';		
@@ -37,7 +38,7 @@ global with sharing class DSTemplateRole {
 		System.assertEquals(expectedJSON, actualJSON);
 	}
 	
-	public static testMethod void persistenceTests(){
+	private static testMethod void persistenceTests(){
 		DSTemplateRole role = new DSTemplateRole();
 		role.email = 'foo';
 		role.name = 'foo';

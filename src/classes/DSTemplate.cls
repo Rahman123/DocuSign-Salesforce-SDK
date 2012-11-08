@@ -14,7 +14,7 @@ global with sharing class DSTemplate {
 		try{
 			DSTemplateResult result = (DSTemplateResult) JSON.deserialize(httpResponse.getBody(), 
 										DSTemplateResult.class);
-			if(result == null){
+			if(result == null || result.envelopeTemplates == null){
 				return new List<DSTemplate>();
 			}
 			else{
@@ -32,7 +32,7 @@ global with sharing class DSTemplate {
 		public List<DSTemplate> envelopeTemplates;
 	}
 	
-	public static testMethod void persistenceTests(){
+	private static testMethod void persistenceTests(){
 		DSTemplate template = new DSTemplate();
 		template.description = 'foo';
 		template.name = 'foo';
@@ -53,7 +53,7 @@ global with sharing class DSTemplate {
 		System.assertEquals(0, result.envelopeTemplates.size());
 	}
 	
-	public static testMethod void deserializeTests(){
+	private static testMethod void deserializeTests(){
 		HttpResponse testResponse = new HttpResponse();
 		//DSLoginInformation nullLoginInfo = (DSLoginInformation)DSLoginInformation.deserialize(testResponse);
 		//System.assertEquals(null, nullLoginInfo);
@@ -69,11 +69,11 @@ global with sharing class DSTemplate {
 		System.assertEquals(2, templates.size());
 	}
 	
-	public static testMethod void injectionTests(){
+	private static testMethod void injectionTests(){
 		HttpResponse testResponse = new HttpResponse();		
 		testResponse.setBody('{"foo": "value"}');
 		List<DSTemplate> templates = DSTemplate.deserialize(testResponse);
-		System.assertEquals(null, templates);
+		System.assertNotEquals(null, templates);
 		
 		testResponse.setBody('{"foo": "value');
 		templates = DSTemplate.deserialize(testResponse);

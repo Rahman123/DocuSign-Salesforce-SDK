@@ -124,18 +124,14 @@ global with sharing class DSClient {
 	}
 	
 	public HttpResponse Get(string restURL){
-		return DocuSignRestAPIReturnResponse(restURL, 'GET', null);
+		return APISend(restURL, 'GET', null);
 	}
 	
 	public HttpResponse Post(string restURL, string reqBody){
-		return DocuSignRestAPIReturnResponse( restURL,                                       
-                                              'POST',
-                                              reqBody == null ? '' : reqBody);
+		return APISend( restURL, 'POST', reqBody == null ? '' : reqBody);
 	}
 
-    private HttpResponse DocuSignRestAPIReturnResponse(string restURL, string HTTPOperation, string reqBody) {
-    	
-		Http http = new Http();
+	private HttpResponse APISend(string restURL, string HTTPOperation, string reqBody) {
 		HttpRequest request = new HttpRequest();
 		if (reqBody != null)
 		{
@@ -150,6 +146,12 @@ global with sharing class DSClient {
 		request.setHeader('Accept', 'application/json');
 		request.setHeader('X-DocuSign-Authentication', this.Credentials.toXML() );
 		request.setTimeout(Timeout);
+		
+		return APISend(request, restURL, HTTPOperation, reqBody);
+	}
+	
+    private HttpResponse APISend(HttpRequest request, string restURL, string HTTPOperation, string reqBody) {    	
+		Http http = new Http();		
 		
 		HttpResponse response = null;
 		try{
@@ -172,8 +174,45 @@ global with sharing class DSClient {
 		{
 			response = new HttpResponse();
 			response.setBody('ERROR: ' + excp.getMessage());
-			system.debug('PostToDocuSignAPIReturnResponse error: ' + excp);
+			system.debug('APISend error: ' + excp);
 		}
 		return response;
+	}
+	
+	private static testMethod void tests(){		
+		DSCredentials credentials = new DSCredentials();
+		boolean exceptionThrown = false;
+		try{
+			DSClient client = new DSClient(credentials);
+		}
+		catch(DSException ex){
+			exceptionThrown = true;
+		}
+		System.assert(exceptionThrown);
+		
+		credentials.Username = 'name@domain.com';
+		credentials.Password = 'password';
+		credentials.IntegratorKey = 'key';
+		DSClient client = new DSClient(credentials);
+		client.validateCredentials();
+		System.assertEquals(false, client.HasError);
+		
+		try{
+			exceptionThrown = false;
+			DSLoginInformation loginInfo = client.LoginInfo;
+		}
+		catch(DSException ex){
+			exceptionThrown = true;
+		}
+		System.assertEquals(true, exceptionThrown);
+		
+		try{
+			exceptionThrown = false;
+			List<DSTemplate> templates = client.getTemplates();
+		}
+		catch(DSException ex){
+			exceptionThrown = true;
+		}
+		System.assertEquals(true, exceptionThrown);		
 	}
 }

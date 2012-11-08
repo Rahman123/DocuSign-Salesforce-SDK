@@ -50,7 +50,7 @@ global with sharing class DSCustomField {
 		return gen;
 	}
 		
-	public static testMethod void persistenceTests(){
+	private static testMethod void persistenceTests(){
 		DSCustomField field = new DSCustomField();
 		field.name = 'foo';
 		field.show = true;
@@ -76,7 +76,7 @@ global with sharing class DSCustomField {
 		System.assertEquals(2, field.listItems.size());
 	}
 	
-	public static testMethod void serializeTests(){
+	private static testMethod void serializeTests(){
 		DSCustomField field = new DSCustomField();
 		field.name = 'foo';
 		field.value = 'foo';
@@ -102,8 +102,17 @@ global with sharing class DSCustomField {
 		System.assertEquals(expectedJSON, actualJSON);
 	}
 	
-	public static testMethod void validationTests(){
+	private static testMethod void validationTests(){
 		DSCustomField field = new DSCustomField('n', 'v');
 		field.fieldType = DSCustomFieldType.LIST_FIELD;
+		
+		boolean exceptionThrown = false;
+		try{
+			field.serialize(JSON.createGenerator(false));	
+		}
+		catch(DSException ex){
+			exceptionThrown = true;
+		}
+		System.assertEquals(true, exceptionThrown);
 	}
 }

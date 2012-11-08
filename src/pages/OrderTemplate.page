@@ -1,0 +1,10 @@
+<apex:page >
+<h1>Order</h1>
+[Logo]<br/>
+<ul>
+<li>Order Line items / repeater</li>
+<li>Page block addendum clauses rendered by custom field state</li>
+<li>Send trigger events: workflow, custom button, trigger</li>
+</ul>
+
+</apex:page>

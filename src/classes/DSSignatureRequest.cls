@@ -5,14 +5,23 @@
  * Note: Currently does not support Tabs
  */
 global with sharing class DSSignatureRequest {
+	public boolean fromTemplate = false;
+	public boolean fromDocument = false;
 	public string emailSubject;
 	public string emailBlurb;
 	public string templateId;
-	public DSEnvelopeStatus status = DSEnvelopeStatus.Sent;
+	public DSEnvelopeStatus status 				= DSEnvelopeStatus.Sent;
+	public List<DSDocument> documents			= new List<DSDocument>();
 	public List<DSCustomField> customFields		= new List<DSCustomField>();
 	public List<DSTemplateRole> templateRoles	= new List<DSTemplateRole>();
+	public List<DSRecipient> recipients			= new List<DSRecipient>();
 	
 	public string serialize(){
+		/*
+		 * if from document, then render header first
+		 --myBoundary
+		 Content-Disposition: form-data
+		 */
 		JSONGenerator gen = JSON.createGenerator(false);
 		gen.writeStartObject();
 		gen.writeStringField('emailSubject', this.emailSubject);
@@ -69,7 +78,7 @@ global with sharing class DSSignatureRequest {
 		return result;
 	}
 	
-	public static testMethod void persistenceTests(){
+	private static testMethod void persistenceTests(){
 		DSSignatureRequest request = new DSSignatureRequest();
 		request.emailBlurb = 'foo';
 		request.emailSubject = 'foo';
@@ -81,7 +90,7 @@ global with sharing class DSSignatureRequest {
 		System.assertEquals(0, request.templateRoles.size());
 	}
 	
-	public static testMethod void getFieldByTypeTests(){
+	private static testMethod void getFieldByTypeTests(){
 		DSSignatureRequest request = new DSSignatureRequest();		
 		request.customFields.add( new DSCustomField('name', 'value') );
 		
@@ -95,7 +104,7 @@ global with sharing class DSSignatureRequest {
 		System.assertEquals(1, request.getFieldsByType(DSCustomField.DSCustomFieldType.TEXT_FIELD).size() );
 	}
 	
-	public static testMethod void serializeTests(){
+	private static testMethod void serializeTests(){
 		DSSignatureRequest request = new DSSignatureRequest();
 		request.emailSubject = 'please sign';
 		request.emailBlurb = 'click here';

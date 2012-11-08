@@ -1,0 +1,66 @@
+<apex:page controller="DocuSignSDKHomeController" sidebar="false">
+ <style type="text/css">
+	.container { 
+		overflow: hidden;
+	}
+	.left_nav{
+		width: 250px;
+	}
+	.workspace{
+		width: 800px;
+	}
+</style>
+
+<apex:form id="theForm">
+	<apex:pageBlock title="Getting Started" rendered="{!configured == false}">
+		<ol>
+			<li>Visit the <a href="http://www.docusign.com/developer-center" target="_new">DocuSign Developer Center</a> and create a Developer Account.</li>
+			<li>Collect the following credentials from the Developer Center
+				<ul>
+					<li>DocuSign Account Email (Username)</li>
+					<li>Account Password</li>
+					<li>API Integrator Key (found under Preferences "API" section)</li>
+					<li>API URL (https://demo.docusign.net)</li>
+				</ul>
+			</li>
+			<li>Go to <a href="../0rp">Remote Site Settings</a> and create a new remote site for URL https://demo.docusign.net/</li>
+			<li>Manage Salesforce <a href="../setup/ui/listCustomSettings.apexp" target="_new">Custom Settings</a> and enter credentials.</li>
+			<li>Refresh this page to view the SDK examples.</li>
+		</ol>
+	</apex:pageBlock>
+	<apex:pageBlock title="Example DocuSign API Calls" rendered="{!configured}">		
+		See <a href="http://iodocs.docusign.com/">http://iodocs.docusign.com/</a> for full REST API documentation.
+		<table>
+			<tr>
+				<td><b>DocuSignClient.BaseEndpointURL</b></td><td>{!Client.BaseURL}</td>
+			</tr>
+			<tr>
+				<td><b>Template ID:</b></td>
+				<td><apex:inputText value="{!templateId}" size="100"/> (Example: c214c9e7-c737-4b50-aa01-fe4d7f0e2434)</td>
+			</tr>
+			<tr>
+				<td><b>Envelope ID:</b></td>
+				<td><apex:inputText value="{!envelopeId}" size="100"/></td>
+			</tr>
+		</table>
+		
+		<div class="container">
+			<div style="float: left;" class="left_nav">
+				<apex:commandButton action="{!getLoginInformation}" value="GET Login Information" /><br/>
+				<apex:commandButton action="{!getTemplates}" value="GET Templates" /><br/>
+				<apex:commandButton value="POST Request Signature from Template" action="{!requestSignatureFromTemplate}" /><br/>
+				<apex:commandButton value="POST Request Signature from Document" /><br/>
+				<apex:commandButton value="GET All Envelopes" action="{!getEnvelopes}" /><br/>
+				<apex:commandButton value="GET Envelope" /><br/>
+				<apex:commandButton value="Serialize SignatureRequest" action="{!serializeRequest}" /><br/>
+			</div>
+			<div style="float: left;" class="workspace">
+				<b>EndpointURL:</b> {!Client.EndpointURL}<hr/>
+				<b>RequestBody:</b> {!Client.RequestBody}<hr/>
+				<b>ResponseBody:</b>{!Client.ResponseBody}<hr/>
+				<apex:outputText value=" {!apiResponse}" escape="false"/>
+			</div>
+		</div>
+	</apex:pageBlock>
+</apex:form>
+</apex:page>

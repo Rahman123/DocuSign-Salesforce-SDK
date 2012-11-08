@@ -4,7 +4,7 @@ public with sharing class DSClientTests {
 	public static testMethod void requestSignatureTests(){
 		//DSClient client = new DSClient();
 	}
-	
+	/*
 	public static testMethod void testRESTGet(){
 		DSCredentials credentials = new DSCredentials();
 		credentials.BaseURL			= 'https://demo.docusign.net/';
@@ -42,4 +42,5 @@ public with sharing class DSClientTests {
 		system.assertEquals('https://test1.docusign.net/Member/StartInSession.aspx?t=fc1c34c2-23ac-44e0-b41c-136f3468b75d', rrtResponse.url);
 		DocuSignUnitTestSettings.PerformingUnitTests = false;
 	}
+	*/
 }
