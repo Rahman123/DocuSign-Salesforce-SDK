@@ -57,7 +57,7 @@ public with sharing class DocuSignSDKHomeController {
 	public PageReference requestSignatureFromTemplate(){
 		this.apiResponse = '';		
 		User u = [SELECT Id, Email, Name FROM User WHERE Id=:UserInfo.getUserId() LIMIT 1];
-		DSSignatureRequest request = new DSSignatureRequest();
+		DSSignatureRequest request = new DSSignatureRequest(DSSignatureRequest.DocumentSource.TEMPLATE);
 		request.emailSubject 	= 'Sandbox requestSignatureFromTemplate()';
 		request.emailBlurb		= 'email body';
 		request.templateId		= this.templateId;
@@ -76,8 +76,8 @@ public with sharing class DocuSignSDKHomeController {
 		return null;
 	}
 	
-	public PageReference serializeRequest(){
-		DSSignatureRequest request = new DSSignatureRequest();
+	public PageReference serializeTemplateRequest(){
+		DSSignatureRequest request = new DSSignatureRequest(DSSignatureRequest.DocumentSource.TEMPLATE);
 		request.emailSubject = 'please sign';
 		request.emailBlurb = 'click here';
 		request.templateId = 'template id';
@@ -88,7 +88,46 @@ public with sharing class DocuSignSDKHomeController {
 		request.customFields = new List<DSCustomField>();
 		request.customFields.add(f);
 		
-		apiResponse = request.serialize();
+		JSONGenerator gen = JSON.createGenerator(false);
+		apiResponse = request.serialize(gen).getAsString();
+		return null;
+	}
+	
+	public PageReference serializeDocumentRequest(){
+		User u = [SELECT Id, Email, Name FROM User WHERE Id=:UserInfo.getUserId() LIMIT 1];
+		DSSignatureRequest request = new DSSignatureRequest(DSSignatureRequest.DocumentSource.DOCUMENT);
+		request.emailSubject = 'Please Sign (SDK Test)';
+		request.emailBlurb = 'This document has been merged with a custom Order template object';
+		
+		Order__c testOrder = [SELECT Id, Name from Order__c LIMIT 1];
+		if(testOrder == null){
+			throw new DSException('Create at least one Order object before testing this feature.');
+		}
+		DSDocument doc = new DSDocument();
+		doc.name	= 'testOrder.pdf';
+		doc.sobjectId = testOrder.Id;
+		doc.apexPathURL = '/apex/ordertemplate';
+		request.documents.add(doc);
+		
+		DSRecipient recipient = new DSRecipient();
+		recipient.email = u.Email;
+		recipient.name = u.Name;
+		request.recipients.add(recipient);
+		
+		if(request.isValid() == false){
+			apiResponse = 'There were validation errors:<br/>';
+			for(string error : request.errors){
+				apiResponse += error +  '<br/>';
+			}
+		}
+		else{
+			DSSignatureResult result = Client.requestSignature(request);
+			this.apiResponse = 'Signature request sent to ' + request.recipients[0].email + '<br/>' + 
+			'EnvelopeID: ' + result.envelopeId + '<br/>' +
+			'Status: ' + result.status + '<br/>' + 
+			'URI: '	+ result.uri + '<br/>' +
+			'Timestamp: ' + result.statusDateTime;
+		}
 		return null;
 	}
 	

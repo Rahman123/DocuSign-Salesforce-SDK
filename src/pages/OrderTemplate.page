@@ -1,4 +1,4 @@
-<apex:page >
+<apex:page sidebar="false" showheader="false"  >
 <h1>Order</h1>
 [Logo]<br/>
 <ul>

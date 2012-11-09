@@ -1,2 +1,4 @@
+.project
+.settings
 src/classes/DSCredentials.cls
 update.sh

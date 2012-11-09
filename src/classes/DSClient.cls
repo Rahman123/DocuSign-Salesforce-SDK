@@ -119,7 +119,54 @@ global with sharing class DSClient {
 	}
 	
 	public DSSignatureResult requestSignature(DSSignatureRequest request){
-		HttpResponse httpResponse = Post(BaseEndpointURL + '/accounts/' + AccountId + '/envelopes', request.serialize());
+		if(request.docSource == DSSignatureRequest.DocumentSource.TEMPLATE){
+			return this.requestSignatureFromTemplate(request);
+		}
+		else{
+			return this.requestSignatureFromDocument(request);
+		}
+	}
+	
+	private DSSignatureResult requestSignatureFromTemplate(DSSignatureRequest request){
+		JSONGenerator gen = JSON.createGenerator(false);
+		HttpResponse httpResponse = Post(BaseEndpointURL + '/accounts/' + AccountId + '/envelopes', request.serialize(gen).getAsString());
+		return DSSignatureResult.deserialize(httpResponse);
+	}
+	
+	private DSSignatureResult requestSignatureFromDocument(DSSignatureRequest signatureRequest){
+		HttpRequest request = new HttpRequest();
+        String endpoint = BaseEndpointURL + '/accounts/' + AccountId + '/envelopes';
+        request.setEndPoint(endpoint);
+        request.setMethod('POST');
+        request.setHeader('Accept', 'application/json');
+        request.setHeader('X-DocuSign-Authentication',  this.Credentials.toXML());
+		request.setHeader('content-type', 'multipart/form-data;boundary=docBoundary');
+		request.setHeader('content-length', String.valueOf( signatureRequest.documents[0].contentLength) );
+        
+        //TODO: for each document in signatureRequest.documents
+		string fileName = signatureRequest.documents[0].name;
+        
+        String contentHeader = '\r\n--docBoundary' + '\r\n' +  
+						' Content-Type: application/json' + '\r\n' + 
+						' Content-Disposition: form-data' + '\r\n' + '\r\n';
+        
+		JSONGenerator gen = JSON.createGenerator(false);
+		gen = signatureRequest.serialize(gen);
+		String envelop = gen.getAsString();
+		System.debug('request body => '+ envelop);
+        
+        String contentType = '\r\n--docBoundary' + '\r\n' + 'Content-Type:application/octet-stream' + '\r\n' +
+						'Content-Transfer-Encoding: base64' + '\r\n' +
+						'Content-Disposition:attachment; ' + 'filename=\"' + fileName + '\";' +
+						'documentid=1 '+'\r\n\r\n\r\n';
+		
+		string bcontent = signatureRequest.documents[0].encodedContent;
+		
+		String envEOF = '\r\n'+'--docBoundary--';
+        		
+		string body = contentHeader + '' + envelop + '\r\n' + contentType + '\r\n' + bcontent + '\r\n' + envEOF;
+		request.setBody(body);
+		HttpResponse httpResponse = APISend(request, BaseEndpointURL + '/accounts/' + AccountId + '/envelopes', 'POST', body);
 		return DSSignatureResult.deserialize(httpResponse);
 	}
 	
