@@ -1,10 +1,137 @@
-<apex:page sidebar="false" showheader="false"  >
-<h1>Order</h1>
-[Logo]<br/>
-<ul>
-<li>Order Line items / repeater</li>
-<li>Page block addendum clauses rendered by custom field state</li>
-<li>Send trigger events: workflow, custom button, trigger</li>
-</ul>
+<apex:page sidebar="false" showheader="false" controller="OrderTemplateController">
+<!-- 
+See "Creating Professional PDF Documents with CSS and Visualforce"
+for details on how to create effective page templates in Salesforce
+http://wiki.developerforce.com/page/Creating_Professional_PDF_Documents_with_CSS_and_Visualforce
+ -->
+<head>
+	<style type="text/css">
+		#container {
+			width: 700px; 
+			padding: 10px; 
+		}
+		.heading {
+			font-size: 32px;
+			padding-left: 50px;
+			float: right;
+		}
+		.subheading {
+			font-size: 16px;
+		}
+		table.address {
+			width: 640px;
+		}
+		table.items {
+			width: 640px;
+			border-width: 1px;
+			border-spacing: 2px;
+			border-style: none;
+			border-color: gray;
+			border-collapse: collapse;
+			background-color: white;
+		}
+		table.items th {
+			border-width: 1px;
+			padding: 1px;
+			border-style: inset;
+			border-color: gray;
+			background-color: white;
+			-moz-border-radius: ;
+		}
+		table.items td {
+			border-width: 1px;
+			padding: 1px;
+			border-style: inset;
+			border-color: gray;
+			background-color: white;
+			-moz-border-radius: ;
+		}
+	</style>
+</head>
+<div id="container">
+	<img src="{!$Resource.DS4SFDC_Logo}" width="150px" />
+	<span class="heading">Purchase Order</span><br/><br/>
+	
+	<b>ABC Company</b><br/>
+	<b>Street Address</b><br/>
+	<b>City, ST Postal Code</b><br/>
+	<b>Phone 805.555.1000 Fax 805.555.1001</b><br/>
+	
+	{!Message}
+	<br/><br/>
+	<table class="address">
+		<tr>
+			<td><b>Bill To</b></td>
+			<td><b>Ship To</b></td>
+		</tr>
+		<tr>
+			<td>{!Order.Account__r.BillingStreet}</td>
+			<td>{!Order.Account__r.ShippingStreet}</td>
+		</tr>
+		<tr>
+			<td>{!Order.Account__r.BillingCity} {!Order.Account__r.BillingState} {!Order.Account__r.BillingPostalCode}</td>
+			<td>{!Order.Account__r.ShippingCity} {!Order.Account__r.ShippingState} {!Order.Account__r.ShippingPostalCode}</td>
+		</tr>
+		<tr>
+			<td>{!Order.Account__r.BillingCountry}</td>
+			<td>{!Order.Account__r.ShippingCountry}</td>
+		</tr>
+	</table>
+	<br/><br/>
+	<div class="subheading">Line Items</div>
+	<table class="items">
+		<tr>
+			<th>Name</th>			
+			<th>Product</th>
+			<th>Quantity</th>
+			<th>Unit Price</th>
+			<th>Total</th>
+		</tr>
+		<apex:repeat value="{!LineItems}" var="item" id="theRepeat">
+		<tr>
+			<td>
+				<apex:outputText value="{!item.Name}"></apex:outputText>
+			</td>
+			<td><apex:outputText value="{!item.Product__r.Name}" /></td>
+			<td>
+				<apex:outputText value="{0, number, 000}">
+   					<apex:param value="{!item.Quantity__c}" />
+				</apex:outputText>
+			</td>
+			<td>
+				<apex:outputText value="{0,number,#,##0.00}">$    
+					<apex:param value="{!item.Price__c}"/>
+				</apex:outputText>
+			</td>
+			<td>
+				<apex:outputText value="{0,number,#,##0.00}">$    
+					<apex:param value="{!item.Total__c}"/>
+				</apex:outputText>
+			</td>
+		</tr>
+		</apex:repeat>	
+		<tr>
+			<td colspan="4"><b>Total Amount:</b></td>
+			<td>
+				<b><apex:outputText value="{0,number,#,##0.00}">$    
+					<apex:param value="{!Order.Order_Total__c}"/>
+				</apex:outputText></b>
+			</td>
+		</tr>
+	</table>
 
+<apex:outputPanel id="thePanel" rendered="{!Order.Warranty_Included__c == True}">
+	<span class="subheading">Warranty</span>
+	<ol>
+		<li>Warranty will begin after formal acceptance of the Equipment or upon a mutually agreed date.</li>
+		<li>In the event that the Vendor does not manufacture certain major components in the system and is acting instead as "distributor" of these components, either the Vendor itself shall warrant these components or the Vendor shall provide warranty commitments by the actual manufacturer whose Equipment the Vendor proposes to furnish to the Hospital.  Failure to comply could result in revocation of this purchase order.</li>
+		<li>All warranty service work shall be documented.  Warranty service shall be scheduled through the Hospitals.  Complete, legible copies of the service form must be left with the departmental shift supervisor when the work is finished.</li>
+		<li>The Vendor shall extend the warranty period if the Equipment experiences performance deficiencies during the warranty period.</li>
+		<li>The decision to repair or replace faulty components during the warranty period shall be made jointly by the Hospital and the Vendor.</li>
+		<li>If warranty service is required outside the normal service hours (Monday through Friday, 8:30am to 5:00pm), the Hospital will only pay a labor rate that does not exceed the difference between the current regular rate and the premium rate.</li>
+		<li>The Vendor, in conjunction with the Hospital and the applicable departmental representatives, shall carry out a complete evaluation of the system to assure that all specifications are met thirty (30) days before the end of the warranty period.  The Vendor shall offer a warranty extension according to D.4.</li>
+		<li>If the cumulative downtime or restricted clinical use exceeds ten (10%) of the total warranty period, the Vendor will extend the warranty to include an additional 30 days for every point below 90%.</li>
+	</ol>
+</apex:outputPanel>
+</div>
 </apex:page>

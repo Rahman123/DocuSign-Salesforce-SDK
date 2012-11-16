@@ -17,6 +17,7 @@ public with sharing class DocuSignSDKHomeController {
 			}
 			return m_credentials;
 		}
+		set{ m_credentials = value; }
 	}
 	
 	private DSClient m_client = null;
@@ -101,7 +102,7 @@ public with sharing class DocuSignSDKHomeController {
 		
 		Order__c testOrder = [SELECT Id, Name from Order__c LIMIT 1];
 		if(testOrder == null){
-			throw new DSException('Create at least one Order object before testing this feature.');
+			throw new DSException('Please create at least one Order object before testing this feature.');
 		}
 		DSDocument doc = new DSDocument();
 		doc.name	= 'testOrder.pdf';
@@ -130,28 +131,22 @@ public with sharing class DocuSignSDKHomeController {
 		}
 		return null;
 	}
-	
-	public string parseField(string jsonString, string fieldName){		
-		JSONParser parser = JSON.createParser(jsonString);
-		while (parser.nextToken() != null) {
-			if ((parser.getCurrentToken() == JSONToken.FIELD_NAME)){
-				String jsonFieldName = parser.getText();
-				parser.nextToken();
-				if(jsonFieldName == fieldName) {
-					return parser.getText();
-				}
-			}
-		}
-		return null;
-	}
-	
-	private static testMethod void tests(){
+		
+	private static testMethod void tests(){		
+		DSCredentials credentials = new DSCredentials();
+		credentials.Username = 'test.username';
+		credentials.Password = 'test.password';
+		credentials.IntegratorKey = 'test.key';
+		
 		DocuSignSDKHomeController controller = new DocuSignSDKHomeController();
+		controller.Credentials = credentials;
+		
 		try{
 			DSClient client = controller.Client;	
 		}
 		catch(DSException ex){
 			
 		}
+		controller.getLoginInformation();
 	}
 }
