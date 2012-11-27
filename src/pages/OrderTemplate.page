@@ -119,7 +119,21 @@ http://wiki.developerforce.com/page/Creating_Professional_PDF_Documents_with_CSS
 			</td>
 		</tr>
 	</table>
-
+	
+	<br/><br/>
+	<table style="width: 200px">
+		<tr>
+			<td style="height:30px;">Name:</td><td>/n1</td>
+		</tr>
+		<tr>
+			<td style="height:30px;">Signature:</td><td></td>
+		</tr>
+		<tr>
+			<td style="height:30px;">Date Signed:</td><td>[date.now()]</td>
+		</tr>
+	</table>
+	
+	
 <apex:outputPanel id="thePanel" rendered="{!Order.Warranty_Included__c == True}">
 	<span class="subheading">Warranty</span>
 	<ol>

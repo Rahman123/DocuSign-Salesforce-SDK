@@ -78,7 +78,12 @@ public with sharing class DSDocument implements DSSerializeable {
 		System.assertEquals(null, doc.encodedContent);
 		System.assertEquals(0, doc.contentLength);
 		
+		Account acct = new Account();
+		acct.Name = 'Test Account';
+		insert acct;
+				
 		Order__c testOrder = new Order__c();
+		testOrder.Account__c = acct.Id;
 		insert testOrder;
 		doc.sobjectId = testOrder.Id;
 		doc.apexPathURL = '/apex/ordertemplate';

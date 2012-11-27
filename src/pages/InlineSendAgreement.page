@@ -1,0 +1,8 @@
+<apex:page showHeader="false" sidebar="false" standardController="Agreement__c" extensions="AgreementControllerExtension">
+<h1>Congratulations</h1>
+<ul>
+<li>This is the inline page for sending agreements.</li>
+<li>Documentation on <a href="https://help.salesforce.com/HTViewHelpDoc?id=security_sharing_cbs_about.htm&language=en_US">Criteria based sharing rules</a></li>
+<li>Concept of composite document assembly. Checkbox on agreement for composite (many) document templates</li>
+</ul>
+</apex:page>

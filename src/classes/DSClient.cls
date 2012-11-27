@@ -100,6 +100,9 @@ global with sharing class DSClient {
 			}
 			return m_loginInfo;
 		}
+		set{
+			m_loginInfo = value;
+		}
 	}
 	
 	private string m_accountId = null;
@@ -198,9 +201,10 @@ global with sharing class DSClient {
 	}
 	
     private HttpResponse APISend(HttpRequest request, string restURL, string HTTPOperation, string reqBody) {    	
-		Http http = new Http();		
-		
+		Http http = new Http();				
 		HttpResponse response = null;
+		this.RequestBody = reqBody;
+		
 		try{
 			if(Test.isRunningTest()){
 				response = new HttpResponse();

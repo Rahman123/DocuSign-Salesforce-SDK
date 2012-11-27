@@ -1,3 +1,8 @@
+/*
+ * OrderTemplateController.cls
+ * TODO: Stylize this class to include pagination of line items per this article
+ * http://wiki.developerforce.com/page/Creating_Professional_PDF_Documents_with_CSS_and_Visualforce
+ */
 public with sharing class OrderTemplateController {
 	public string Message {get; set;}
 	Id m_id 			= null;
@@ -38,5 +43,27 @@ public with sharing class OrderTemplateController {
 			m_lineItems = [select Id, Name, Price__c, Product__c, Product__r.Name, Quantity__c,Total__c, Order__c from Order_Line_Item__c where Order__c=:m_id];
 		}
 		return m_lineItems;
+	}
+	
+	public static testMethod void tests(){
+		Account acct = new Account();
+		acct.Name = 'test';
+		insert acct;
+		
+		Order__c order = new Order__c();
+		order.Account__c = acct.Id;
+		insert order;
+		
+		Order_Line_Item__c item = new Order_Line_Item__c();		
+		item.Quantity__c = 2;
+		item.Order__c = order.Id;
+		item.Price__c = 100.0;
+		insert item;
+		
+		ApexPages.currentPage().getParameters().put('id', order.Id);
+		OrderTemplateController controller = new OrderTemplateController();
+		System.assertNotEquals(null, controller.getOrder() );
+		System.assertNotEquals(null, controller.getLineItems() );	
+		System.assertEquals(1, controller.getLineItems().size() );
 	}
 }

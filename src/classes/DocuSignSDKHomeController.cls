@@ -94,7 +94,7 @@ public with sharing class DocuSignSDKHomeController {
 		return null;
 	}
 	
-	public PageReference serializeDocumentRequest(){
+	public PageReference serializeDocumentRequest(){		
 		User u = [SELECT Id, Email, Name FROM User WHERE Id=:UserInfo.getUserId() LIMIT 1];
 		DSSignatureRequest request = new DSSignatureRequest(DSSignatureRequest.DocumentSource.DOCUMENT);
 		request.emailSubject = 'Please Sign (SDK Test)';
@@ -110,9 +110,26 @@ public with sharing class DocuSignSDKHomeController {
 		doc.apexPathURL = '/apex/ordertemplate';
 		request.documents.add(doc);
 		
+		DSTab signatureTab = new DSTab();
+		signatureTab.tabType = DSTab.DSTabType.SIGN_HERE;
+		signatureTab.useAnchorProperties = true;
+		signatureTab.anchorString	= 'Signature:';
+		signatureTab.anchorXOffset	= 100;
+		signatureTab.anchorYOffset	= 10;
+		
+		DSTab nameTab = new DSTab();
+		nameTab.tabType = DSTab.DSTabType.FULL_NAME;
+		nameTab.useAnchorProperties = true;
+		nameTab.anchorString	= 'Name:';
+		nameTab.anchorXOffset	= 100;
+		nameTab.anchorYOffset	= 10;
+		
 		DSRecipient recipient = new DSRecipient();
 		recipient.email = u.Email;
 		recipient.name = u.Name;
+		recipient.tabs.add(signatureTab);
+		recipient.tabs.add(nameTab);
+				
 		request.recipients.add(recipient);
 		
 		if(request.isValid() == false){
@@ -120,19 +137,34 @@ public with sharing class DocuSignSDKHomeController {
 			for(string error : request.errors){
 				apiResponse += error +  '<br/>';
 			}
+			return null;
 		}
-		else{
-			DSSignatureResult result = Client.requestSignature(request);
-			this.apiResponse = 'Signature request sent to ' + request.recipients[0].email + '<br/>' + 
-			'EnvelopeID: ' + result.envelopeId + '<br/>' +
-			'Status: ' + result.status + '<br/>' + 
-			'URI: '	+ result.uri + '<br/>' +
-			'Timestamp: ' + result.statusDateTime;
-		}
+		
+		DSSignatureResult result = Client.requestSignature(request);
+		this.apiResponse = 'Signature request sent to ' + request.recipients[0].email + '<br/>' + 
+		'EnvelopeID: ' + result.envelopeId + '<br/>' +
+		'Status: ' + result.status + '<br/>' + 
+		'URI: '	+ result.uri + '<br/>' +
+		'Timestamp: ' + result.statusDateTime;
+		
 		return null;
 	}
 		
 	private static testMethod void tests(){		
+		Account acct = new Account();
+		acct.Name = 'test';
+		insert acct;
+		
+		Order__c order = new Order__c();
+		order.Account__c = acct.Id;
+		insert order;
+		
+		Order_Line_Item__c item = new Order_Line_Item__c();		
+		item.Quantity__c = 2;
+		item.Order__c = order.Id;
+		item.Price__c = 100.0;
+		insert item;
+		
 		DSCredentials credentials = new DSCredentials();
 		credentials.Username = 'test.username';
 		credentials.Password = 'test.password';
@@ -148,5 +180,35 @@ public with sharing class DocuSignSDKHomeController {
 			
 		}
 		controller.getLoginInformation();
+		try{
+			controller.getEnvelopes();
+		}
+		catch(DSException ex){
+			
+		}
+		try{
+			controller.getTemplates();
+		}
+		catch(DSException ex){
+			
+		}
+		try{
+			controller.requestSignatureFromTemplate();	
+		}
+		catch(DSException ex){
+			
+		}
+		try{
+			controller.serializeDocumentRequest();	
+		}
+		catch(DSException ex){
+			
+		}
+		try{
+			controller.serializeTemplateRequest();	
+		}
+		catch(DSException ex){
+			
+		}
 	}
 }

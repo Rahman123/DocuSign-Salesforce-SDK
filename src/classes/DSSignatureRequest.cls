@@ -260,7 +260,12 @@ global with sharing class DSSignatureRequest implements DSSerializeable {
 		request.emailSubject = 'please sign';
 		request.emailBlurb = 'click here';
 		
+		Account acct = new Account();
+		acct.Name = 'Test Account';
+		insert acct;
+		
 		Order__c testOrder = new Order__c();
+		testOrder.Account__c = acct.Id;
 		insert testOrder;
 		DSDocument doc = new DSDocument();
 		doc.name = 'testOrder.pdf';
